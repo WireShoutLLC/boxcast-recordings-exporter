@@ -3,9 +3,6 @@ BoxCast Broadcast Downloader
 Downloads historical broadcasts from the BoxCast API and organizes them locally
 into folders by YYYY/MM, with files named YYYY-MM-DD-HH-MM.mp4.
 
-Requirements:
-    pip install requests tqdm
-
 Usage:
     1. Set your credentials and account ID in the CONFIG section below
        (or use environment variables).
