@@ -1,0 +1,10 @@
+{
+  "name": "BoxCast Recordings Exporter",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install -r requirements.txt",
+  "remoteEnv": {
+    "BOXCAST_CLIENT_ID": "${localEnv:BOXCAST_CLIENT_ID}",
+    "BOXCAST_CLIENT_SECRET": "${localEnv:BOXCAST_CLIENT_SECRET}",
+    "BOXCAST_ACCOUNT_ID": "${localEnv:BOXCAST_ACCOUNT_ID}"
+  }
+}
