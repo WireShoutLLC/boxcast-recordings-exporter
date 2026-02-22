@@ -8,6 +8,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 try:
     from tqdm import tqdm
     HAS_TQDM = True
