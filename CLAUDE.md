@@ -6,7 +6,7 @@ A single-file Python CLI tool that downloads all historical broadcast recordings
 
 ## Files
 
-- `main.py` — The entire application (342 lines, no package structure)
+- `boxcast_downloader.py` — The entire application (no package structure)
 - `README.md` — Brief user-facing documentation
 - `.gitignore` — Standard Python ignores
 
@@ -16,7 +16,7 @@ A single-file Python CLI tool that downloads all historical broadcast recordings
 export BOXCAST_CLIENT_ID="your_id"
 export BOXCAST_CLIENT_SECRET="your_secret"
 export BOXCAST_ACCOUNT_ID="your_account"
-python main.py
+python boxcast_downloader.py
 ```
 
 ## Environment Variables
@@ -37,7 +37,7 @@ pip install requests tqdm
 - `requests` — required
 - `tqdm` — optional; script degrades gracefully without it
 
-## Tunable Constants (top of `main.py`)
+## Tunable Constants (top of `boxcast_downloader.py`)
 
 - `PAGE_SIZE = 50` — Broadcasts per API page (max 100)
 - `POLL_INTERVAL = 15` — Seconds between transcode status checks
