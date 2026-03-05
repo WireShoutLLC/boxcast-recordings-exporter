@@ -1,0 +1,32 @@
+name: Linting
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3"
+
+      - name: Install Python Linters
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Run Ruff (Python Linter)
+        run: ruff check .
+
+      - name: Run dotenv-linter
+        uses: dotenv-linter/action-dotenv-linter@v2
+        with:
+          dotenv_linter_flags: check --ignore-checks UnorderedKey
