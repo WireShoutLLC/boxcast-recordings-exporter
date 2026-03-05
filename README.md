@@ -61,6 +61,7 @@ pip install -r requirements.txt
    - `BOXCAST_CLIENT_SECRET`: Your BoxCast API client secret
    - `BOXCAST_ACCOUNT_ID`: Your BoxCast Account ID
    - `BOXCAST_OUTPUT_DIR`: (Optional) The directory where broadcasts will be downloaded. Defaults to `./broadcasts`.
+   - `BOXCAST_MAX_WORKERS`: (Optional) The maximum number of concurrent operations for polling and downloading. Defaults to `1`. Maximum value is `10` to avoid rate limits.
 
    *Note: You need a BoxCast API client_id and client_secret. Contact BoxCast support if you don't have them yet.*
 

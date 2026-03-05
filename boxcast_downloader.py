@@ -6,16 +6,14 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 load_dotenv()
-try:
-    from tqdm import tqdm
-    HAS_TQDM = True
-except ImportError:
-    HAS_TQDM = False
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIG  –  edit these or set them as environment variables
@@ -24,6 +22,7 @@ CLIENT_ID     = os.getenv("BOXCAST_CLIENT_ID",     "YOUR_CLIENT_ID")
 CLIENT_SECRET = os.getenv("BOXCAST_CLIENT_SECRET", "YOUR_CLIENT_SECRET")
 ACCOUNT_ID    = os.getenv("BOXCAST_ACCOUNT_ID",    "YOUR_ACCOUNT_ID")
 OUTPUT_DIR    = os.getenv("BOXCAST_OUTPUT_DIR",    "./broadcasts")
+MAX_WORKERS   = os.getenv("BOXCAST_MAX_WORKERS",   "1")
 
 # How many broadcasts to fetch per page (max 100)
 PAGE_SIZE = 50
@@ -34,9 +33,23 @@ POLL_INTERVAL = 15
 # Maximum total seconds to wait for a single broadcast to finish transcoding
 MAX_WAIT = 3600   # 1 hour – increase if you have very long broadcasts
 
+try:
+    MAX_WORKERS = int(MAX_WORKERS)
+except ValueError:
+    MAX_WORKERS = 1
+
+# Hard limit max workers to 10
+if MAX_WORKERS > 10:
+    MAX_WORKERS = 10
+elif MAX_WORKERS < 1:
+    MAX_WORKERS = 1
+
 # ─────────────────────────────────────────────────────────────────────────────
 AUTH_URL = "https://auth.boxcast.com/oauth2/token"
 API_BASE = "https://rest.boxcast.com"
+
+# Thread lock for console prints to avoid interleaved text
+PRINT_LOCK = threading.Lock()
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -192,7 +205,13 @@ def poll_for_download_url(recording_id: str, token: str) -> str | None:
     return None
 
 
-def download_file(url: str, dest_path: Path) -> bool:
+def safe_print(*args, **kwargs):
+    """Thread-safe print using either tqdm.write or standard print + lock."""
+    with PRINT_LOCK:
+        tqdm.write(" ".join(str(a) for a in args), **kwargs)
+
+
+def download_file(url: str, dest_path: Path, position: int = 0) -> bool:
     """Stream-download a file, showing a progress bar if tqdm is available."""
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = dest_path.with_suffix(".tmp")
@@ -202,91 +221,90 @@ def download_file(url: str, dest_path: Path) -> bool:
             resp.raise_for_status()
             total = int(resp.headers.get("content-length", 0))
 
-            if HAS_TQDM:
-                progress = tqdm(
-                    total=total,
-                    unit="B",
-                    unit_scale=True,
-                    unit_divisor=1024,
-                    desc=dest_path.name,
-                )
-            else:
-                progress = None
+            progress = tqdm(
+                total=total,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                desc=dest_path.name,
+                position=position,
+                leave=False
+            )
 
             with open(tmp_path, "wb") as fh:
                 for chunk in resp.iter_content(chunk_size=1024 * 64):
                     fh.write(chunk)
-                    if progress:
-                        progress.update(len(chunk))
+                    progress.update(len(chunk))
 
-            if progress:
-                progress.close()
+            progress.close()
 
         tmp_path.rename(dest_path)
         return True
 
     except Exception as exc:
-        print(f"    [error] Download failed: {exc}")
+        safe_print(f"    [error] Download failed: {exc}")
         if tmp_path.exists():
             tmp_path.unlink()
         return False
 
 
-def process_broadcast(broadcast: dict, token: str, output_dir: str) -> None:
-    """Full pipeline for a single broadcast: request → poll → download."""
+def process_broadcast(broadcast: dict, token: str, output_dir: str, worker_id: int) -> str:
+    """
+    Full pipeline for a single broadcast: request → poll → download.
+    Returns a status string: "skipped", "success", or "failed".
+    """
     bcast_id   = broadcast.get("id", "?")
     name       = broadcast.get("name", "(unnamed)")
     starts_at  = broadcast.get("starts_at", "")
 
-    print(f"\n{'─' * 60}")
-    print(f"Broadcast : {name}")
-    print(f"ID        : {bcast_id}")
-    print(f"Starts at : {starts_at}")
+    safe_print(f"\n[{worker_id}] {'─' * 50}\n[{worker_id}] Broadcast : {name}\n[{worker_id}] ID        : {bcast_id}\n[{worker_id}] Starts at : {starts_at}")
 
     dest_path = build_filepath(broadcast, output_dir)
 
     # Skip if already downloaded
     if dest_path.exists():
-        print(f"  ✓ Already exists at {dest_path} – skipping.")
-        return
+        safe_print(f"[{worker_id}]   ✓ Already exists at {dest_path} – skipping.")
+        return "skipped"
 
     # We need the full broadcast detail to get recording_id
     try:
         detail = api_get(f"/account/broadcasts/{bcast_id}", token)
     except requests.HTTPError as exc:
-        print(f"  [error] Could not fetch broadcast detail: {exc}")
-        return
+        safe_print(f"[{worker_id}]   [error] Could not fetch broadcast detail: {exc}")
+        return "failed"
 
     recording_id = detail.get("recording_id", "")
     if not recording_id:
-        print("  [skip] No recording_id – broadcast may not have a recording.")
-        return
+        safe_print(f"[{worker_id}]   [skip] No recording_id – broadcast may not have a recording.")
+        return "skipped"
 
     # Request MP4 generation
-    print(f"  Requesting MP4 generation (recording_id={recording_id})…")
+    safe_print(f"[{worker_id}]   Requesting MP4 generation (recording_id={recording_id})…")
     try:
         request_download(bcast_id, recording_id, token)
     except requests.HTTPError as exc:
         # 409 usually means a download was already requested; safe to continue
         if exc.response is not None and exc.response.status_code == 409:
-            print("  [info] Download already requested, continuing to poll…")
+            safe_print(f"[{worker_id}]   [info] Download already requested, continuing to poll…")
         else:
-            print(f"  [error] Could not request download: {exc}")
-            return
+            safe_print(f"[{worker_id}]   [error] Could not request download: {exc}")
+            return "failed"
 
     # Poll until ready
-    print("  Waiting for transcode to complete…")
+    safe_print(f"[{worker_id}]   Waiting for transcode to complete…")
     url = poll_for_download_url(recording_id, token)
     if not url:
-        return
+        return "failed"
 
     # Download
-    print(f"  Downloading → {dest_path}")
-    success = download_file(url, dest_path)
+    safe_print(f"[{worker_id}]   Downloading → {dest_path}")
+    success = download_file(url, dest_path, position=worker_id)
     if success:
-        print(f"  ✓ Saved to {dest_path}")
+        safe_print(f"[{worker_id}]   ✓ Saved to {dest_path}")
+        return "success"
     else:
-        print(f"  ✗ Download failed for {name}")
+        safe_print(f"[{worker_id}]   ✗ Download failed for {name}")
+        return "failed"
 
 
 def main():
@@ -300,9 +318,6 @@ def main():
             "    export BOXCAST_ACCOUNT_ID=...\n"
         )
         sys.exit(1)
-
-    if not HAS_TQDM:
-        print("[info] Install 'tqdm' for download progress bars:  pip install tqdm\n")
 
     # ── Authenticate ─────────────────────────────────────────────────────────
     print("Authenticating with BoxCast API…")
@@ -322,22 +337,33 @@ def main():
     skipped   = 0
     failed    = 0
 
-    for i, broadcast in enumerate(broadcasts, 1):
-        print(f"\n[{i}/{len(broadcasts)}]", end="")
-        dest_path = build_filepath(broadcast, OUTPUT_DIR)
-        if dest_path.exists():
-            skipped += 1
-        try:
-            process_broadcast(broadcast, token, OUTPUT_DIR)
-            succeeded += 1
-        except Exception as exc:
-            print(f"  [error] Unexpected error: {exc}")
-            failed += 1
+    print(f"Processing broadcasts with up to {MAX_WORKERS} concurrent worker(s)...")
+
+    # We will pass a worker index to help organize output and progress bars
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        future_to_bcast = {
+            executor.submit(process_broadcast, bcast, token, OUTPUT_DIR, i % MAX_WORKERS): bcast
+            for i, bcast in enumerate(broadcasts)
+        }
+
+        for future in as_completed(future_to_bcast):
+            bcast = future_to_bcast[future]
+            try:
+                status = future.result()
+                if status == "success":
+                    succeeded += 1
+                elif status == "skipped":
+                    skipped += 1
+                else:
+                    failed += 1
+            except Exception as exc:
+                safe_print(f"  [error] Unexpected error processing {bcast.get('name', '(unnamed)')}: {exc}")
+                failed += 1
 
     # ── Summary ───────────────────────────────────────────────────────────────
-    print(f"\n{'═' * 60}")
-    print(f"Done.  Downloaded: {succeeded}  Skipped: {skipped}  Failed: {failed}")
-    print(f"Files saved to: {Path(OUTPUT_DIR).resolve()}")
+    safe_print(f"\n{'═' * 60}")
+    safe_print(f"Done.  Downloaded: {succeeded}  Skipped: {skipped}  Failed: {failed}")
+    safe_print(f"Files saved to: {Path(OUTPUT_DIR).resolve()}")
 
 
 if __name__ == "__main__":
