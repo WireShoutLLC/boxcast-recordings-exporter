@@ -91,7 +91,7 @@ def list_past_broadcasts(account_id: str, token: str) -> list:
     print("Fetching broadcast list...")
     while True:
         data = api_get(
-            f"/account/broadcasts",
+            "/account/broadcasts",
             token,
             params={
                 "q": "timeframe:past",
