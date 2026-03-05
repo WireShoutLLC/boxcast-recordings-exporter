@@ -11,13 +11,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 load_dotenv()
-try:
-    from tqdm import tqdm
-    HAS_TQDM = True
-except ImportError:
-    HAS_TQDM = False
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIG  –  edit these or set them as environment variables
@@ -212,10 +208,7 @@ def poll_for_download_url(recording_id: str, token: str) -> str | None:
 def safe_print(*args, **kwargs):
     """Thread-safe print using either tqdm.write or standard print + lock."""
     with PRINT_LOCK:
-        if HAS_TQDM:
-            tqdm.write(" ".join(str(a) for a in args), **kwargs)
-        else:
-            print(*args, **kwargs)
+        tqdm.write(" ".join(str(a) for a in args), **kwargs)
 
 
 def download_file(url: str, dest_path: Path, position: int = 0) -> bool:
@@ -228,27 +221,22 @@ def download_file(url: str, dest_path: Path, position: int = 0) -> bool:
             resp.raise_for_status()
             total = int(resp.headers.get("content-length", 0))
 
-            if HAS_TQDM:
-                progress = tqdm(
-                    total=total,
-                    unit="B",
-                    unit_scale=True,
-                    unit_divisor=1024,
-                    desc=dest_path.name,
-                    position=position,
-                    leave=False
-                )
-            else:
-                progress = None
+            progress = tqdm(
+                total=total,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                desc=dest_path.name,
+                position=position,
+                leave=False
+            )
 
             with open(tmp_path, "wb") as fh:
                 for chunk in resp.iter_content(chunk_size=1024 * 64):
                     fh.write(chunk)
-                    if progress:
-                        progress.update(len(chunk))
+                    progress.update(len(chunk))
 
-            if progress:
-                progress.close()
+            progress.close()
 
         tmp_path.rename(dest_path)
         return True
@@ -330,9 +318,6 @@ def main():
             "    export BOXCAST_ACCOUNT_ID=...\n"
         )
         sys.exit(1)
-
-    if not HAS_TQDM:
-        print("[info] Install 'tqdm' for download progress bars:  pip install tqdm\n")
 
     # ── Authenticate ─────────────────────────────────────────────────────────
     print("Authenticating with BoxCast API…")
