@@ -49,4 +49,4 @@ We use GitHub Issues to track bugs and feature requests. Please use the provided
 
 ## License
 
-By contributing to this repository, you agree that your contributions will be licensed under the project's GPLv3 license.
+By contributing to this repository, you agree that your contributions will be licensed under the project's MIT License.

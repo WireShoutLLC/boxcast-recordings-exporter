@@ -1,6 +1,6 @@
 # BoxCast Broadcast Downloader
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Downloads historical broadcasts from the BoxCast API and organizes them locally
 into folders by YYYY/MM, with files named `YYYY-MM-DD-HH-MM.mp4`.
@@ -86,4 +86,4 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+This project is licensed under the [MIT License](LICENSE).

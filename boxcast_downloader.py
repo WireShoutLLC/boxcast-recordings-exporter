@@ -308,6 +308,9 @@ def process_broadcast(broadcast: dict, token: str, output_dir: str, worker_id: i
 
 
 def main():
+    print("BoxCast Broadcast Downloader")
+    print("Licensed under the MIT License")
+    print("─────────────────────────────────────────────────────────")
     # ── Validate config ───────────────────────────────────────────────────────
     if "YOUR_" in CLIENT_ID or "YOUR_" in CLIENT_SECRET or "YOUR_" in ACCOUNT_ID:
         print(
