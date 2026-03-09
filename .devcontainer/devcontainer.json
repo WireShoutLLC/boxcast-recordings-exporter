@@ -6,5 +6,26 @@
     "BOXCAST_CLIENT_ID": "${localEnv:BOXCAST_CLIENT_ID}",
     "BOXCAST_CLIENT_SECRET": "${localEnv:BOXCAST_CLIENT_SECRET}",
     "BOXCAST_ACCOUNT_ID": "${localEnv:BOXCAST_ACCOUNT_ID}"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "mikestead.dotenv"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+          }
+        }
+      }
+    }
   }
 }
