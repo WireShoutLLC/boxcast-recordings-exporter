@@ -7,7 +7,7 @@ First off, thank you for considering contributing to the BoxCast Recordings Expo
 1. **Fork the repository** on GitHub.
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/your-username/boxcast-downloader.git
+   git clone https://github.com/your-username/boxcast-recordings-exporter.git
    ```
 3. **Set up your development environment**:
    - The repository provides a DevContainer, which is the easiest way to get started. Just open the repository in VS Code and click "Reopen in Container".

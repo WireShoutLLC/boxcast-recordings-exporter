@@ -20,7 +20,7 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Desktop (please complete the following information):**
- - OS: [e.g. iOS, Windows, Linux, macOS]
+ - OS: [e.g. Windows, Linux, macOS]
  - Python version [e.g. 3.12]
 
 **Additional context**
