@@ -1,7 +1,9 @@
-BoxCast Broadcast Downloader
------------------------------
+# BoxCast Broadcast Downloader
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 Downloads historical broadcasts from the BoxCast API and organizes them locally
-into folders by YYYY/MM, with files named YYYY-MM-DD-HH-MM.mp4.
+into folders by YYYY/MM, with files named `YYYY-MM-DD-HH-MM.mp4`.
 
 ## Prerequisites
 
@@ -77,3 +79,11 @@ python boxcast_downloader.py
 
 - The download process is asynchronous: BoxCast must first transcode the recording to MP4, which can take several minutes per broadcast.
 - Already-downloaded files are skipped automatically.
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details on how to set up your environment, format code, and submit Pull Requests.
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
