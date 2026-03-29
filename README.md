@@ -15,7 +15,7 @@ into folders by YYYY/MM, with files named `YYYY-MM-DD-HH-MM.mp4`.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/boxcast-downloader.git
+git clone https://github.com/WireShoutLLC/boxcast-downloader.git
 cd boxcast-downloader
 ```
 
