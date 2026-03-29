@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Debug BoxCast Downloader",
+            "name": "Python: Debug BoxCast Exporter",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/boxcast_downloader.py",
+            "program": "${workspaceFolder}/boxcast_exporter.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
             "justMyCode": true

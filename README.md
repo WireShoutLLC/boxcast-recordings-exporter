@@ -1,4 +1,4 @@
-# BoxCast Broadcast Downloader
+# BoxCast Broadcast Exporter
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -15,8 +15,8 @@ into folders by YYYY/MM, with files named `YYYY-MM-DD-HH-MM.mp4`.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/WireShoutLLC/boxcast-downloader.git
-cd boxcast-downloader
+git clone https://github.com/WireShoutLLC/boxcast-recordings-exporter.git
+cd boxcast-recordings-exporter
 ```
 
 ### 2. Set up a Python Virtual Environment
@@ -67,10 +67,10 @@ pip install -r requirements.txt
 
 ## Usage
 
-Once installed and configured, run the downloader script:
+Once installed and configured, run the exporter script:
 
 ```bash
-python boxcast_downloader.py
+python boxcast_exporter.py
 ```
 
 ## Notes

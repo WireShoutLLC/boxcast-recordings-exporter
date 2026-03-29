@@ -309,10 +309,10 @@ def process_broadcast(broadcast: dict, token: str, output_dir: str, worker_id: i
 
 def main():
     if "--help" in sys.argv or "-h" in sys.argv:
-        print("BoxCast Broadcast Downloader")
+        print("BoxCast Broadcast Exporter")
         print("Downloads historical broadcasts from the BoxCast API and organizes them locally.")
         print("\nUsage:")
-        print("  python boxcast_downloader.py")
+        print("  python boxcast_exporter.py")
         print("\nEnvironment Variables:")
         print("  BOXCAST_CLIENT_ID     : Your BoxCast API client ID")
         print("  BOXCAST_CLIENT_SECRET : Your BoxCast API client secret")
@@ -321,7 +321,7 @@ def main():
         print("  BOXCAST_MAX_WORKERS   : Max concurrent workers (default: 1, max: 10)")
         sys.exit(0)
 
-    print("BoxCast Broadcast Downloader")
+    print("BoxCast Broadcast Exporter")
     print("Made with love at WireShout - Licensed under the MIT License")
     print("─────────────────────────────────────────────────────────")
     # ── Validate config ───────────────────────────────────────────────────────
