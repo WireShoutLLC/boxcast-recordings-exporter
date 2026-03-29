@@ -15,8 +15,8 @@ into folders by YYYY/MM, with files named `YYYY-MM-DD-HH-MM.mp4`.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/boxcast-exporter.git
-cd boxcast-exporter
+git clone https://github.com/WireShoutLLC/boxcast-recordings-exporter.git
+cd boxcast-recordings-exporter
 ```
 
 ### 2. Set up a Python Virtual Environment
